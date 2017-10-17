@@ -9,13 +9,14 @@ Database set-up file (Unreferenced) (Run manually)
 // ---------------------------------------------------- 
 */
 
-var db 	= require('./db/database.js');
+var db 				= require('./db/database.js');
+var defaultConst	= require('../config/default.js');
 
 
 // Set up collections
-let collections = [	'users',
-					'userdata',
-					'restaurantdata'
+let collections = [	defaultConst.colUsers,
+					defaultConst.colUserData,
+					defaultConst.colRestaurantData
 ];
 
 // Iterate through collection names

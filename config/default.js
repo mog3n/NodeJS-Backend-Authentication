@@ -14,5 +14,8 @@ module.exports = {
 
 	saltRounds			: 11,
 	port 				: 8081,
+	colUsers			: "users",
+	colUserData			: "userdata",
+	colRestaurantData	: "restaurantdata",
 
 }

@@ -67,23 +67,25 @@ api.post('/new_user', function(req, res) {
 	const currentTime = date.getMilliseconds();
 
 
-	// Verify POST data
+	// TODO: Verify POST data
 
 
 	var tempUser = {
+
 		username 	: req.body.username,
 		password 	: req.body.password,
 		salt 		: '',
 		email		: req.body.email,
 		dateofreg : currentTime,
+
 	};
 
 	// Hash the password
 
-	// Call bcrypt, get salt and hash from tempUser arguments
+	// Generate salt
 	bcrypt.genSalt(defaultConst.saltRounds, function(err, tempsalt) {
 		if (err) throw err;
-		// Get hash given salt
+		// Generate hash
 	    bcrypt.hash(tempUser.password, tempsalt, function(err, temphash) {
 	    	if (err) throw err;
 
@@ -91,11 +93,19 @@ api.post('/new_user', function(req, res) {
 	    	tempUser.salt = tempsalt;
 	    	tempUser.password = temphash;
 
+	    	// Add user to collection: 'users'
+	    	db.collection(defaultConst.colUsers).insertOne(tempUser, function(err, res){
+	    		if (err) throw err;
+	    		
+	    		// User successfully added
+	    		res.json({ success: true });
+
+	    	});
+
+
 	    });
 	});
 
-
-	// Add to database
 
 
 });
@@ -108,3 +118,6 @@ app.use('/api', api);
 // ---------------------------------------------------- Start Server
 app.listen(defaultConst.port);
 console.log("Magic happens at localhost:" + defaultConst.port + "/");
+
+
+
