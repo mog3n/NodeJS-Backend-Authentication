@@ -12,8 +12,10 @@ Returns a reusable database object using 'mongodb'
 
 // ---------------------------------------------------- Require
 var MongoClient 	= require('mongodb').MongoClient;
-var config			= require('./config/config.js'); // Get db url
+var config			= require('../config/config.js');
 
+
+// Create connection
 MongoClient.connect(config.dbUrl, function(err, db){
 
 
