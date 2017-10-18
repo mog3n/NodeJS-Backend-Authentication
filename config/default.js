@@ -12,7 +12,7 @@ Default settings
 
 module.exports = {
 
-	saltRounds			: 11,
+	saltRounds			: 15,
 	port 				: 8081,
 	colUsers			: "users",
 	colUserData			: "userdata",
