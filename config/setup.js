@@ -16,7 +16,8 @@ var defaultConst	= require('../config/default.js');
 // Set up collections
 let collections = [	defaultConst.colUsers,
 					defaultConst.colUserData,
-					defaultConst.colRestaurantData
+					defaultConst.colRestaurantData,
+					defaultConst.colInvalidTokens
 ];
 
 // Iterate through collection names

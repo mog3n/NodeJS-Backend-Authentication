@@ -41,6 +41,7 @@ app.use(morgan('dev'));
 
 // ---------------------------------------------------- Variables
 
+var usersConnected = []; // Shows the number of users logged in
 
 // ---------------------------------------------------- Methods
 
@@ -95,40 +96,10 @@ MongoClient.connect(config.dbUrl, function(err, db){
 	});
 
 
+
 	// ---------------------------------------------------- API App Route (/api)
 	var api = express.Router();
 
-	// Homepage
-
-	api.get('/', function(req, res){
-		res.end('* Foody API *');
-	});
-
-	// Show user list
-	api.get('/users', function(req, res){
-
-		// Collection: 'users'
-		db.collection(defaultConst.colUsers).find( {} , { password: false, salt: false } ).toArray(function(err, users){
-			if (err) throw err;
-
-			// Collection: 'userdata'
-			db.collection(defaultConst.colUserData).find( {} ).toArray(function(err, userdata){
-				if (err) throw err;
-
-				var combinedExport = {
-					users 		: users,
-					userdata 	: userdata
-				};
-
-				res.send(combinedExport);
-				res.end();
-
-			});
-
-		});
-
-
-	});
 
 	// Verify token before accessing API
 
@@ -154,8 +125,37 @@ MongoClient.connect(config.dbUrl, function(err, db){
 				} else {
 
 					// Token is valid
-					req.user = decoded;
-					next();
+					// Chcek if token is blacklisted
+
+					db.collection(defaultConst.colInvalidTokens).findOne({ token: token }, function(err, res){
+						if (err) throw err;
+
+						if (res) {
+							// Token found
+							// Verify again
+							if (res.token == token) {
+								// Toke whitelisted
+								// Token invalid
+								return res.status(403).send({
+									success 	: false,
+									error 		: 'sessionExpired',
+									message		: 'For security reasons, and to keep your account safe, please login again.'
+								});
+
+							} else {
+								// Token valid
+								req.user = decoded;
+								next();
+							}
+
+						} else {
+							// Token not found in blacklist
+							// Allow user to connect
+							req.user = decoded;
+							next();
+						}
+
+					});
 				}
 
 			});
@@ -170,6 +170,68 @@ MongoClient.connect(config.dbUrl, function(err, db){
 			});
 
 		}
+
+	});
+
+	// Logout
+	api.get('/logout', function(req,res){
+
+		// Invalidate the session token
+		// A session token must be valid to invalidate
+		var token = req.body.token || req.query.token || req.headers['x-access-token'];
+		const tempEntry = {
+			token : token,
+		};
+
+		db.collection(defaultConst.colInvalidTokens).insertOne( tempEntry, function(err, res){
+			// Session token stored in blacklist
+
+			// Remove user from session
+			const indexOfUser = usersConnected.indexOf({username: req.user.username});
+			usersConnected.splice(indexOfUser,1); // Remove user from connected users
+			res.json({ success: true });
+		});
+
+	});
+
+
+
+	// Homepage
+
+
+	api.get('/', function(req, res){
+		res.end('* Foody API *');
+	});
+
+	// Show users with tokens
+	api.get('/sessions', function(req, res){se
+		res.send(usersConnected);
+		res.end();
+	});
+
+	// Show user list
+	api.get('/users', function(req, res){
+
+		// Collection: 'users'
+		db.collection(defaultConst.colUsers).find( {} , { password: false, salt: false } ).toArray(function(err, users){
+			if (err) throw err;
+
+			// Collection: 'userdata'
+			db.collection(defaultConst.colUserData).find( {} ).toArray(function(err, userdata){
+				if (err) throw err;
+
+				var combinedExport = {
+					users 		: users,
+					userdata 	: userdata
+				};
+
+				res.send(combinedExport);
+				res.end();
+
+			});
+
+		});
+
 
 	});
 
@@ -244,6 +306,10 @@ MongoClient.connect(config.dbUrl, function(err, db){
 								message		: 'Login successful. Welcome back!'
 							});
 
+							// Add connected users to variable
+							var date = new Date();
+							const currentTime = date.getTime();
+							usersConnected += { username : payload.username, id : payload.id, time: currentTime };
 
 						} else {
 
@@ -393,6 +459,3 @@ MongoClient.connect(config.dbUrl, function(err, db){
 	console.log("*Magic* happens at api.localhost:" + defaultConst.port + "/");
 
 }); // End MongoClient
-
-
-

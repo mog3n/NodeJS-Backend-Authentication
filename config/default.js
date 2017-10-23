@@ -16,6 +16,6 @@ module.exports = {
 	port 				: 8081,
 	colUsers			: "users",
 	colUserData			: "userdata",
-	colRestaurantData	: "restaurantdata",
+	colInvalidTokens	: "invalidtokens",
 
 }
