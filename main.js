@@ -75,6 +75,7 @@ function validatePassword(password){
     }else{
     	return false;
     }
+    
 }
 
 
@@ -101,6 +102,32 @@ MongoClient.connect(config.dbUrl, function(err, db){
 
 	api.get('/', function(req, res){
 		res.end('* Foody API *');
+	});
+
+	// Show user list
+	api.get('/users', function(req, res){
+
+		// Collection: 'users'
+		db.collection(defaultConst.colUsers).find( {} , { password: false, salt: false } ).toArray(function(err, users){
+			if (err) throw err;
+
+			// Collection: 'userdata'
+			db.collection(defaultConst.colUserData).find( {} ).toArray(function(err, userdata){
+				if (err) throw err;
+
+				var combinedExport = {
+					users 		: users,
+					userdata 	: userdata
+				};
+
+				res.send(combinedExport);
+				res.end();
+
+			});
+
+		});
+
+
 	});
 
 	// Verify token before accessing API
@@ -254,7 +281,8 @@ MongoClient.connect(config.dbUrl, function(err, db){
 			salt 		: '',
 			email		: req.body.email,
 			dateofreg 	: currentTime,
-			regAPI		: '', // i.e. facebook, google, instagram, twitter
+			regAPI		: '',
+			 // i.e. facebook, google, instagram, twitter
 
 		};
 
@@ -314,7 +342,7 @@ MongoClient.connect(config.dbUrl, function(err, db){
 							    		// Get the newly created user's id
 							    		const userId = result.ops.insertedId;
 
-							    		// UserData
+							    		// UserData template
 							    		tempUserData = {
 							    			linkId : userId,	// Link user id to a new entry
 							    			added : [],
@@ -325,11 +353,11 @@ MongoClient.connect(config.dbUrl, function(err, db){
 							    			dateofbirth : '',
 							    		}
 
-							    		db.collection(defaultConst.colUserData).insertOne(tempUser, function(err, result){
+							    		db.collection(defaultConst.colUserData).insertOne(tempUserData, function(err, result){
 							    			if (err) throw err;
 
 							    			// User sucecssfully created
-							    			res.json({ success: true });
+							    			res.json({ success: true, redirect: '' });
 							    			console.log("'" + tempUser.username + "' New user created @ " + date.toUTCString());
 							    		});
 
