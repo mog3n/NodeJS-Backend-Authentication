@@ -12,7 +12,7 @@ Global config file
 
 module.exports = {
 
-	secret 				: 'c@d4waSMeI3s69#*^', // Change this!
-	dbUrl 				: 'mongodb://localhost:27017/foodydb',
+	secret 				: 'averysecretvalue', // Change this!
+	dbUrl 				: 'mongodb://localhost:27017/mydatabase', // Change the database name as you please
 
 }
